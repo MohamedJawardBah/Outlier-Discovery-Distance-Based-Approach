@@ -6,16 +6,21 @@
 package outlierdetection;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -29,22 +34,22 @@ public class OutlierDetection {
     /**
      * @param args the command line arguments
      */
-    private static NumberFormat formatter = new DecimalFormat("#0.00"); 
-    private static Scanner scanner = new Scanner(System.in);
-    private static final String TRAINING_DATA_FILES = "E:\\Users\\Nadian\\Documents\\NetBeansProjects\\OutlierDetection\\src\\resources\\outlierdataset.txt";
+    public static NumberFormat formatter = new DecimalFormat("#0.00"); 
+    public static Scanner scanner = new Scanner(System.in);
+    public static final String TRAINING_DATA_FILES = "E:\\Users\\Nadian\\Documents\\NetBeansProjects\\new outlier\\Outlier-Discovery-Distance-Based-Approach-master\\src\\resources\\outlierdataset.txt";
 
-    private static ArrayList<Point> dataSet = new ArrayList<>();
-    private static ArrayList<Point> trainingPoints = new ArrayList<>();
+    public static ArrayList<Point> dataSet = new ArrayList<>();
+    public static ArrayList<Point> trainingPoints = new ArrayList<>();
     //kebutuhan clustering
-    private static ArrayList<Point> centroid = new ArrayList<>();
-    static int sizeData=0;
-    static int nIdx=0;
-    private static double[][] cArrayDistances = new double[sizeData][sizeData]; //prepare matriks jarak
+    public static ArrayList<Point> centroid = new ArrayList<>();
+    public static int sizeData=0;
+    public static int nIdx=0;
+    public static double[][] cArrayDistances = new double[sizeData][sizeData]; //prepare matriks jarak
 
         
-    private static final int k = 2; //kluster yang dinginkan di tahap 1. clustering
+    public static final int k = 2; //kluster yang dinginkan di tahap 1. clustering
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         trainingPoints = setData(TRAINING_DATA_FILES);
         nIdx = trainingPoints.get(0).getmIndex().length; //get jumlah feature/index
         System.out.println("jumlah index: "+nIdx);
@@ -109,9 +114,14 @@ public class OutlierDetection {
         printPointData(trainingPoints);
         System.out.println("---------------------------------------------------------------");
         
+        //-------write the result on file txt
+        String fresultname="hasiloutlier.txt";
+        writeResult(trainingPoints,fresultname);
         //6. sort A B C (A=member kluster terdekat, B=Outlier, C=Outlier) -> tentukan mana outlier yang lebih dekat dari A
         //6. sort A B C (A=member kluster terjauh, B=Outlier, C=Outlier) -> tentukan mana outlier yang lebih jauh dari A
+//        public void Write(String string[]){
 
+  
     }
     public static ArrayList<Point> setData(String filePath) {
         ArrayList<String[]> resultList = new ArrayList<>(); // List untuk menampung sementara isi file
@@ -162,7 +172,7 @@ public class OutlierDetection {
         return dataPoints; // Mengembalikan data
     }
 
-    private static Point getCentroid(int i, ArrayList<Point> mDataSet) {
+    public static Point getCentroid(int i, ArrayList<Point> mDataSet) {
         Point mCentro = new Point();
         int nDataCentro = 0;
         int nIdx = mDataSet.get(0).getmIndex().length;
@@ -203,7 +213,7 @@ public class OutlierDetection {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static float getDistPoint2Point(Point mPoint1, Point mPoint2) {
+    public static float getDistPoint2Point(Point mPoint1, Point mPoint2) {
         float result;
         int nIdx = mPoint1.getmIndex().length;
         float temp = 0;
@@ -220,7 +230,7 @@ public class OutlierDetection {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static void printPointData(ArrayList<Point> Points) {
+    public static void printPointData(ArrayList<Point> Points) {
         int counter=0;
         for (Point point : Points) {        //print datatraining
             float[] tempIndex = new float[point.getmIndex().length];
@@ -236,14 +246,14 @@ public class OutlierDetection {
         System.out.println(" ");
     }
 
-    private static void initLabelCentroid(ArrayList<Point> Points) {
+    public static void initLabelCentroid(ArrayList<Point> Points) {
         for(int i=0 ; i < Points.size() ; i++){
             Points.get(i).setmLabel(i);
         }
 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static void makeCentArrayDistances() {
+    public static void makeCentArrayDistances() {
         cArrayDistances = new double[centroid.size()][centroid.size()];
         Point dist = new Point();
         System.out.println("=> (Matriks) Array of Distance: ");
@@ -274,14 +284,14 @@ public class OutlierDetection {
         System.out.println("4. Matriks Jarak dari "+centroid.size()+" centroid LOADED");
     }
 
-    private static double getMinValueOf2DDouble(double[][] Array) {
+    public static double getMinValueOf2DDouble(double[][] Array) {
         Stream<double[]> temp = Stream.of(Array);
         DoubleStream Stream = temp.flatMapToDouble(x -> Arrays.stream(x)); // Cant print Stream<int[]> directly, convert / flat it to IntStream 
         double mMinDistance = Stream.min().getAsDouble();
         return mMinDistance;
     }
     
-    private static int[] getIndexOf2D(double[][] array2D, double value) {
+    public static int[] getIndexOf2D(double[][] array2D, double value) {
         int[] var = new int[2];
         for(int i=0; i<array2D.length ; i++){
             //System.out.println(array2D.length);
@@ -297,7 +307,7 @@ public class OutlierDetection {
         return var;
     }
     
-    private static ArrayList<Point> doMergeCluster(ArrayList<Point> mCentroid, int[] varMerge) {
+    public static ArrayList<Point> doMergeCluster(ArrayList<Point> mCentroid, int[] varMerge) {
         IntStream stream = Stream.of(varMerge).flatMapToInt(x -> Arrays.stream(x));
             int min = stream.min().getAsInt();                                  //getting min value of clusterthat will be merged
         IntStream stream2 = Stream.of(varMerge).flatMapToInt(x -> Arrays.stream(x));
@@ -320,7 +330,7 @@ public class OutlierDetection {
             return mCentroid;
     }
     
-    private static ArrayList<Point> rearrangeLabelCentroid(ArrayList<Point> points, int[] var) {
+    public static ArrayList<Point> rearrangeLabelCentroid(ArrayList<Point> points, int[] var) {
         int max = Arrays.stream(var).max().getAsInt();
         int min = Arrays.stream(var).min().getAsInt();  
         //System.out.println("BEFORE");
@@ -340,7 +350,7 @@ public class OutlierDetection {
          return points;        
     }
 
-    private static void doHirarCluster() {
+    public static void doHirarCluster() {
         //---------------4. hitung jarak, buat matriksnya [matriks jarak]
             makeCentArrayDistances(); 
 
@@ -365,7 +375,7 @@ public class OutlierDetection {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    private static float[] getMeanJarakMember(ArrayList<Point> mTrainingPoints, ArrayList<Point> mCentroid) {
+    public static float[] getMeanJarakMember(ArrayList<Point> mTrainingPoints, ArrayList<Point> mCentroid) {
         int k = mCentroid.size();
         float distance[] = new float[mTrainingPoints.size()];
         float result[] = new float[k];  //saving mean jarak members of x cluster
@@ -392,7 +402,7 @@ public class OutlierDetection {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static void printArrayFloat(float[] mArr) {
+    public static void printArrayFloat(float[] mArr) {
         System.out.print("[{");
         for(int i=0; i<mArr.length; i++){
             System.out.print(mArr[i]);
@@ -404,7 +414,7 @@ public class OutlierDetection {
     }
 
 //    mengembalikan hashmap pasangan label dan kluster yang berkaitan dengan label tsb
-    private static HashMap<String, Integer> labelize(float[] mDistGroundToCent) {
+    public static HashMap<String, Integer> labelize(float[] mDistGroundToCent) {
         int mKluster = mDistGroundToCent.length;
         HashMap<String,Integer> mLabeling = new HashMap<String,Integer>();
         if(mKluster==2){
@@ -421,7 +431,7 @@ public class OutlierDetection {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static void equipCheckClustering() {
+    public static void equipCheckClustering() {
         System.out.println("=> trainingPoints Labeled LOADED");
         printPointData(trainingPoints);
         System.out.println("------------------------ jumlah trainingPoints: " + trainingPoints.size());
@@ -432,7 +442,7 @@ public class OutlierDetection {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static Point getGround() {
+    public static Point getGround() {
         Point mGround;
         float nol[] = new float[nIdx];
         nol = initFloatNol1D(nol);
@@ -440,7 +450,7 @@ public class OutlierDetection {
         return mGround;
     }
 
-    private static void discoverOutlier(ArrayList<Point> mTrainingPoints, float[] jari2, ArrayList<Point> mCentroid) {
+    public static void discoverOutlier(ArrayList<Point> mTrainingPoints, float[] jari2, ArrayList<Point> mCentroid) {
         for(Point pt:mTrainingPoints){
             int kluster = (int)pt.getmLabel();
             float jarakMember = getDistPoint2Point(pt,mCentroid.get(kluster));
@@ -451,7 +461,7 @@ public class OutlierDetection {
         }
     }
 
-    private static float[] getCentroidMerged(int[] varMerge) {
+    public static float[] getCentroidMerged(int[] varMerge) {
         float[] result = new float[trainingPoints.get(0).getmIndex().length];
         float[] tempSum = new float[trainingPoints.get(0).getmIndex().length];
         int counter=0;
@@ -467,5 +477,65 @@ public class OutlierDetection {
             }
         return result;
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+public static void write (String filename, int[]x) throws IOException{
+  BufferedWriter outputWriter = null;
+  outputWriter = new BufferedWriter(new FileWriter(filename));
+  for (int i = 0; i < x.length; i++) {
+    // Maybe:
+    outputWriter.write(x[i]+"");
+    // Or:
+    outputWriter.write(Integer.toString(x[i]));
+    outputWriter.newLine();
+  }
+  outputWriter.flush();  
+  outputWriter.close();  
+}
+
+public static void ngawur(){
+    String string[] = {"nadia","maya","ibuk","bapak"};
+      try{
+          FileWriter fr = new FileWriter("phones.txt");
+          BufferedWriter br = new BufferedWriter(fr);
+          PrintWriter out = new PrintWriter(br);
+          String lineSep = System.getProperty("line.separator");
+          
+          for(int i=0; i<string.length; i++){
+            if(string[i] != null)
+            out.write(string[i]+lineSep);
+              System.out.println("string"+string[i]);
+
+//            out.write("\n");       
+          }
+          out.close();
+      } 
+      catch(IOException e){
+       System.out.println(e);   
+      }
+}
+    public static void writeResult(ArrayList<Point> trainingPoints, String filename) throws IOException {
+        FileWriter fr = new FileWriter(filename);
+        BufferedWriter outputWriter = new BufferedWriter(fr);
+        PrintWriter out = new PrintWriter(outputWriter);
+        String lineSep = System.getProperty("line.separator");
+        String[] data = new String[trainingPoints.size()];
+//            outputWriter = new BufferedWriter(new FileWriter(filename));
+        for (int i = 0; i < trainingPoints.size(); i++) {
+                StringBuilder strBuilder = new StringBuilder();
+                float tempIndex[] = trainingPoints.get(i).getmIndex();
+                String tempStatus = trainingPoints.get(i).getMemberStatus();
+                for(float index:tempIndex){
+                    strBuilder.append(index);
+                    strBuilder.append(",");
+                }
+                strBuilder.append(tempStatus);
+                String rowdata = strBuilder.toString();
+                data[i] = rowdata;
+                out.write(data[i]+lineSep);
+                System.out.println("rowdata : "+rowdata);
+//                outputWriter.write(rowdata);
+//                outputWriter.newLine();
+        }
+        out.close();
     }
 }

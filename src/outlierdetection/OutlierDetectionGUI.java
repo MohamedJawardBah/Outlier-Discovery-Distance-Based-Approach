@@ -7,8 +7,38 @@ package outlierdetection;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.table.DefaultTableModel;
+import static outlierdetection.OutlierDetection.centroid;
+import static outlierdetection.OutlierDetection.initLabelCentroid;
+import static outlierdetection.OutlierDetection.nIdx;
+import static outlierdetection.OutlierDetection.trainingPoints;
 import static outlierdetection.OutlierDetection.setData;
+import static outlierdetection.OutlierDetection.sizeData;
+import static outlierdetection.OutlierDetection.cArrayDistances;
+import static outlierdetection.OutlierDetection.centroid;
+import static outlierdetection.OutlierDetection.discoverOutlier;
+import static outlierdetection.OutlierDetection.doHirarCluster;
+import static outlierdetection.OutlierDetection.equipCheckClustering;
+import static outlierdetection.OutlierDetection.getDistPoint2Point;
+import static outlierdetection.OutlierDetection.getGround;
+import static outlierdetection.OutlierDetection.getMeanJarakMember;
+import static outlierdetection.OutlierDetection.k;
+import static outlierdetection.OutlierDetection.labelize;
+import static outlierdetection.OutlierDetection.printArrayFloat;
+import static outlierdetection.OutlierDetection.printPointData;
+import static outlierdetection.OutlierDetection.scanner;
+import static outlierdetection.OutlierDetection.trainingPoints;
+import static outlierdetection.OutlierDetection.writeResult;
 
 /**
  *
@@ -41,55 +71,174 @@ public class OutlierDetectionGUI extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tbDatab = new javax.swing.JTable();
+        jButtonLoad = new javax.swing.JButton();
+        jButtonStart = new javax.swing.JButton();
+        jTextFieldTreshold = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tbDatab1 = new javax.swing.JTable();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(93, 55, 168));
 
+        jLabel2.setFont(new java.awt.Font("Yu Gothic Medium", 1, 48)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel2.setText("OUTLIER DETECTION");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(147, 147, 147)
+                .addComponent(jLabel2)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(64, Short.MAX_VALUE)
+                .addComponent(jLabel2)
+                .addContainerGap())
         );
 
         jPanel2.setBackground(new java.awt.Color(251, 255, 202));
 
         tbDatab.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Data 1", "Data 2", "Data 3", "Data 4", "Data 5", "Data 6"
             }
         ));
         jScrollPane2.setViewportView(tbDatab);
+
+        jButtonLoad.setText("Load");
+        jButtonLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLoadActionPerformed(evt);
+            }
+        });
+
+        jButtonStart.setText("Mulai");
+        jButtonStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonStartActionPerformed(evt);
+            }
+        });
+
+        jTextFieldTreshold.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldTresholdActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Yu Gothic Medium", 0, 18)); // NOI18N
+        jLabel1.setText("Treshold");
+
+        jLabel3.setFont(new java.awt.Font("Yu Gothic UI Light", 1, 24)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(3, 23, 166));
+        jLabel3.setText("Data Uji Outlier");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(51, 51, 51)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 417, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(263, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap(69, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTextFieldTreshold, javax.swing.GroupLayout.DEFAULT_SIZE, 67, Short.MAX_VALUE)
+                    .addComponent(jButtonLoad, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(24, 24, 24)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 511, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(59, 59, 59))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(42, 42, 42)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(34, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(24, 24, 24))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jButtonLoad)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextFieldTreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonStart)
+                        .addGap(44, 44, 44))))
+        );
+
+        jPanel3.setBackground(new java.awt.Color(251, 255, 202));
+
+        tbDatab1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Data 1", "Data 2", "Data 3", "Data 4", "Data 5", "Data 6", "Status"
+            }
+        ));
+        jScrollPane3.setViewportView(tbDatab1);
+
+        jLabel4.setFont(new java.awt.Font("Yu Gothic UI Light", 1, 24)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(3, 23, 166));
+        jLabel4.setText("Hasil Outlier");
+
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/drawable/logo3.png"))); // NOI18N
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 508, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(62, 62, 62))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(37, 37, 37))))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addGap(9, 9, 9)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
+                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(21, 21, 21))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -98,19 +247,74 @@ public class OutlierDetectionGUI extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 102, Short.MAX_VALUE))
+                .addGap(0, 0, 0)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    DefaultTableModel model = new DefaultTableModel();
+    DefaultTableModel model1 = new DefaultTableModel();
+    private void jButtonLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadActionPerformed
+        String filePath = "E:\\Users\\Nadian\\Documents\\NetBeansProjects\\new outlier\\Outlier-Discovery-Distance-Based-Approach-master\\src\\resources\\outlierdataset.txt";
+        File file = new File(filePath);
+        
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            model = (DefaultTableModel)tbDatab.getModel();
+            
+            Object[] tableLines = br.lines().toArray();
+            for(int i=0; i < tableLines.length; i++)
+            {
+                String line = tableLines[i].toString().trim();
+                String[] dataRow = line.split(",");
+                model.addRow(dataRow);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(OutlierDetectionGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonLoadActionPerformed
 
+    private void jTextFieldTresholdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldTresholdActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextFieldTresholdActionPerformed
+    private void jTextFieldTresholdKeyTyped(java.awt.event.KeyEvent evt) {                                            
+        // TODO add your handling code here:
+        char enter = evt.getKeyChar();
+        if(!(Character.isDigit(enter))){
+            evt.consume();
+        }
+    }       
+    private void jButtonStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStartActionPerformed
+        runMethod();
+        String filePath = "E:\\Users\\Nadian\\Documents\\NetBeansProjects\\new outlier\\Outlier-Discovery-Distance-Based-Approach-master\\hasiloutlier.txt";
+        File file = new File(filePath);
+        model1 = new DefaultTableModel();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            model1 = (DefaultTableModel)tbDatab1.getModel();
+            
+            Object[] tableLines = br.lines().toArray();
+            for(int i=0; i < tableLines.length; i++)
+            {
+                String line = tableLines[i].toString().trim();
+                String[] dataRow = line.split(",");
+                model1.addRow(dataRow);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(OutlierDetectionGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonStartActionPerformed
+              
     /**
      * @param args the command line arguments
      */
@@ -137,6 +341,7 @@ public class OutlierDetectionGUI extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(OutlierDetectionGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -147,9 +352,108 @@ public class OutlierDetectionGUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonLoad;
+    private javax.swing.JButton jButtonStart;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTextField jTextFieldTreshold;
     private javax.swing.JTable tbDatab;
+    private javax.swing.JTable tbDatab1;
     // End of variables declaration//GEN-END:variables
+
+    private void runMethod() {
+        trainingPoints = setData(TRAINING_DATA_FILES);
+        nIdx = trainingPoints.get(0).getmIndex().length; //get jumlah feature/index
+        System.out.println("jumlah index: "+nIdx);
+        
+        //---------------------- 1. clustering, define centroid of each cluster (hierarchical clustering)
+        centroid = setData(TRAINING_DATA_FILES);
+        initLabelCentroid(trainingPoints);
+        initLabelCentroid(centroid);
+        sizeData = trainingPoints.size(); //prepare matriks of jarak 
+        cArrayDistances = new double[sizeData][sizeData];
+        //-- additional : EQUIPMENTS CHECKS
+        //mencetak  inisial centroid didapat
+        equipCheckClustering();
+        while(centroid.size()>k){
+            //DO THE HIRARCHICAL CLUSTERING ALGORITHM
+            doHirarCluster();
+        }
+        System.out.println("-------------------- 1. CLUSTERING is done");
+        System.out.println("=> trainingPoints CLUSTERING RESULT IS LOADED");
+        printPointData(trainingPoints);
+        System.out.println("=> centroid OF CLUSTERS IS LOADED");
+        printPointData(centroid);
+        System.out.println("---------------------------------------------------------------");
+        
+        //---------------------- 2. labelisasi (jarak centroid ke ground)
+        HashMap<String,Integer> labeling = new HashMap<String,Integer>();  //hasmap untuk simpan label baik -> cluster sekian, buruk -> cluster sekian
+        float distGroundToCent[] = new float[k]; //variabel untuk menyimpan jarak centroid kluster x dengan ground (sesuai case, ground=0,0)
+        Point ground;                           //preparing for ground point
+        ground = getGround();
+        //mengisi value distance ground to each centroid
+        for(int i=0; i<k ; i++){
+            distGroundToCent[i] = getDistPoint2Point(centroid.get(i),ground);
+            System.out.println("distance kluster to ground: "+i+" : "+ distGroundToCent[i]);
+        }
+        labeling = labelize(distGroundToCent);          //add hashmap label "GOOD" -> which cluster
+        System.out.println("-------------------- 2. LABELING is done");
+        System.out.println(Arrays.asList(labeling));    //checking label
+        System.out.println("---------------------------------------------------------------");
+        
+        //----------------------- 3. hitung jarak rata2 member kluster 1 dengan centroid 1,dst
+        float[]  meanJarakMember = getMeanJarakMember(trainingPoints, centroid);
+        System.out.println("-------------------- 3. MEAN JARAK CENTROID to its MEMBER are calculated");
+        printArrayFloat(meanJarakMember);
+        System.out.println(" ");
+        System.out.println("---------------------------------------------------------------");
+        
+        //----------------------- 4. define jari2. r = alpha* jarak rata2 (dari centroid tetanggaan yang tidak terlingkup adalah outlier)
+        System.out.print("\n4. (Alpha > 1) Tentukan Alpha : ");
+        float jari2[] = new float[k];
+//        float alpha = scanner.nextFloat();
+        boolean statusKosongK = jTextFieldTreshold.getText().isEmpty();
+        float alpha=0;
+        if(statusKosongK!=true)
+            alpha = Float.parseFloat(jTextFieldTreshold.getText());
+        else
+            System.out.println("ERROR, anda belum memasukkan nilai treshold");
+        System.out.print("Alpha : "+alpha);
+        for(int i=0 ; i<k ; i++){
+            jari2[i] = alpha * meanJarakMember[i];
+        }
+        System.out.println("\n-------------------- 4. THRESHOLD(JARI2) are calculated");
+        printArrayFloat(jari2);
+        System.out.println(" ");
+        System.out.println("---------------------------------------------------------------");
+        
+        //----------------------- 5. output=>outlier ditemukan (ArrayList<Point> outliers)
+        discoverOutlier(trainingPoints,jari2, centroid);
+        System.out.print("\n-------------------- 5. Hasil Outlier Yang Ditemukan: \n");
+        printPointData(trainingPoints);
+        System.out.println("---------------------------------------------------------------");
+        
+        String folderHasil = "E:\\Users\\Nadian\\Documents\\NetBeansProjects\\new outlier\\Outlier-Discovery-Distance-Based-Approach-master\\src\\resources";
+        File file = new File(folderHasil);
+        
+        //6. sort A B C (A=member kluster terdekat, B=Outlier, C=Outlier) -> tentukan mana outlier yang lebih dekat dari A
+        //6. sort A B C (A=member kluster terjauh, B=Outlier, C=Outlier) -> tentukan mana outlier yang lebih jauh dari A
+        
+        //-------write the result on file txt
+        String fresultname="hasiloutlier.txt";
+        try {
+            writeResult(trainingPoints,fresultname);
+//        DefaultTableModel modelhasil = new DefaultTableModel(model);
+        } catch (IOException ex) {
+            Logger.getLogger(OutlierDetectionGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
